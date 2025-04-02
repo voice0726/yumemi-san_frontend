@@ -1,0 +1,30 @@
+name: Check Pushed Commit
+
+on:
+  push:
+    branches-ignore:
+      - main
+      - dev
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Check pushed commit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Type check
+        run: pnpm run types:check
+        shell: bash
+      - name: Eslint
+        run: pnpm run lint:check
+        shell: bash
