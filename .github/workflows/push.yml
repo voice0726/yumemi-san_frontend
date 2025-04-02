@@ -1,0 +1,77 @@
+name: Check Pushed Commit
+
+on:
+  push:
+    branches-ignore:
+      - main
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Check pushed commit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+          run_install: false
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+      - name: Install dependencies
+        run: pnpm install
+      - name: Type check
+        run: pnpm run types:check
+      - name: Eslint
+        run: pnpm run lint:check
+      - name: Prettier
+        run: pnpm run prettier:check
+  test:
+    name: Run test
+    needs: check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+          run_install: false
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+      - name: Install dependencies
+        run: pnpm install
+      - name: Run test
+        run: pnpm run test
+  check-result:
+    runs-on: ubuntu-latest
+    name: Show results of checking Pull Request
+    needs: [ check, test ]
+    if: always()
+    steps:
+      - name: Succeeded
+        if: ${{ !contains(join(needs.*.result, ','), 'failure') }}
+        run: |
+          echo "Finished checking PR successfully"
+      - name: Failed
+        if: ${{ contains(join(needs.*.result, ','), 'failure') }}
+        run: |
+          echo "Some checks are not passed"
+          exit 1
