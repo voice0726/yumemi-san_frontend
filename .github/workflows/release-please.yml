@@ -18,8 +18,17 @@ jobs:
     outputs:
       release_created: ${{ steps.release.outputs.release_created }}
     steps:
-      - uses: google-github-actions/release-please-action@v3
-        id: release
+      - name: Generate app token
+        uses: actions/create-github-app-token@v1
+        id: app-token
         with:
-          release-type: node
-          package-name: yumemi-san_frontend
+          app-id: ${{ secrets.CREATE_APP_TOKEN_APP_ID }}
+          private-key: ${{ secrets.CREATE_APP_TOKEN_PRIVATE_KEY }}
+      - name: Release please
+        id: release-please
+        uses: googleapis/release-please-action@v4
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+          target-branch: main
