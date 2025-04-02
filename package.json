@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "next lint",
     "prepare": "husky",
-    "types:check": "tsc --noEmit"
+    "types:check": "tsc --noEmit",
+    "lint:check": "eslint 'src/**/*.{js,jsx,ts,tsx}'",
+    "prettier:check": "prettier 'src/**/*.{js,jsx,ts,tsx}'"
   },
   "dependencies": {
     "next": "15.2.4",
